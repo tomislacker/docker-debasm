@@ -12,6 +12,9 @@
 ################################################################################
 
 # First, ensure we can access some common libraries
+log.debug "buildep.sh is @deprecated"
+exit 0
+
 if ! . "$(dirname ${BASH_SOURCE})/debasm.inc.sh"; then
     echo "FATAL: Cannot include debasm.inc.sh -> ''" >&2
     exit 254
