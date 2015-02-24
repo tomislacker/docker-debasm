@@ -22,6 +22,15 @@ export DEBASM_BUILDEPS=( \
     wget \
 )
 
+export PKG_SOURCE_DIR="/pkgsrc"
+export PKG_TEMP_DIR="/pkgdst"
+export PKG_DEBIAN_DIR="/DEBIAN"
+
+if [ -z "$PKG_DEBNAME" ]; then
+    PKG_DEBNAME="${PKG_NAME}-${PKG_VER}-${PKG_DEBVER}"
+fi
+
+
 if ! . "${DEBASM_ROOT}/debasm_log.inc.sh" 2>>/dev/null ; then
     echo -e "FATAL:\tCannot include debasm_log.inc.sh" >&2
     exit 254

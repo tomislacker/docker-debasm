@@ -17,66 +17,92 @@ if ! . "$(dirname ${BASH_SOURCE})/debasm.inc.sh"; then
     exit 254
 fi
 
+PKG_NAME=
+PKG_VER=
+PKG_DEBVER=
+PKG_FULLVER=
+PKG_DEBNAME=
+PKG_USER_EMAIL=
+USER=$(whoami)
+LOGNAME=$(whoami)
+
+while getopts ":n:v:r:d:e:" OPT; do
+    case $OPT in
+        n)  PKG_NAME="$OPTARG" ;;
+        v)  PKG_VER="$OPTARG" ;;
+        r)  PKG_DEBVER="$OPTARG" ;;
+        d)  PKG_DEBNAME="$OPTARG" ;;
+        e)  PKG_USER_EMAIL="$OPTARG" ;;
+        U)  USER="$OPTARG" ;;
+        L)  LOGNAME="$OPTARG" ;;
+        ?)
+            echo "ERROR: Invalid option -${OPTARG}" >&2
+            exit 1
+            ;;
+        \*)
+            echo "ERROR: Option -${OPTARG} requires argument" >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ -z "$PKG_NAME" ]; then
+    echo "ERROR: No package name (-n) provided" >&2
+    exit 1
+elif [ -z "$PKG_VER" ]; then
+    echo "ERROR: No package version (-v) provided" >&2
+    exit 1
+fi
+
+if [ -z "$PKG_DEBNAME" ]; then
+    PKG_DEBNAME="${PKG_NAME}-${PKG_VER}"
+    if [ -n "${PKG_DEBVER}" ]; then
+        PKG_DEBNAME="${PKG_DEBNAME}-${PKG_DEBVER}"
+    fi
+fi
+
+PKG_FULLVER="${PKG_VER}"
+if [ -n "${PKG_DEBVER}" ]; then
+    PKG_FULLVER="${PKG_FULLVER}-${PKG_DEBVER}"
+fi
+
 dumpVariables.prePkgBuild
 
 # Determine where the package will be assembled
-log.debug "Copying pkgsrc '/pkgsrc' -> '${PKG_TEMP_DIR}'"
+log.notice "Copying pkgsrc '${PKG_SOURCE_DIR}' -> '${PKG_TEMP_DIR}'"
 mkdir -p "${PKG_TEMP_DIR}"
-cp -r /pkgsrc/* "${PKG_TEMP_DIR}" || exit $?
+cp -r ${PKG_SOURCE_DIR}/* ${PKG_TEMP_DIR}/ \
+    || exit $?
+
+if [ -d "${PKG_TEMP_DIR}/DEBIAN" ]; then
+    log.debug "Cleaning out ${PKG_TEMP_DIR}/DEBIAN"
+    rm -fr ${PKG_TEMP_DIR}/DEBIAN >&/dev/null
+fi
+
+log.notice "Copying DEBIAN '${PKG_DEBIAN_DIR}' -> '${PKG_TEMP_DIR}'"
+cp -r ${PKG_DEBIAN_DIR} ${PKG_TEMP_DIR}/ \
+    || exit $?
 
 cd "${PKG_TEMP_DIR}"
 
-DH_MAKE_ARGS=( \
-    --native \
-    --single \
-    --email ${PKG_USER_EMAIL} \
-    --yes \
+log.notice "Doing control modifications..."
+sed -i "s/^Package:.*$/Package: ${PKG_NAME}/g" DEBIAN/control
+sed -i "s/^Version:.*$/Version: ${PKG_FULLVER}/g" DEBIAN/control
+
+log.notice "Starting dpkg-deb (pwd='$(pwd)')"
+dpkgDebArgs=( \
+    --build \
+    ./ \
+    /deb/${PKG_DEBNAME}.deb \
 )
+log.debug "\tdpkg-deb ${dpkgDebArgs[*]}"
+dpkg-deb ${dpkgDebArgs[*]} >&/dev/null
+dpkgDebExit=$?
 
-if [ -d debian ]; then
-    DH_MAKE_ARGS+=( \
-        --addmissing \
-    )
+if [[ $dpkgDebExit -ne 0 ]]; then
+    log.crit "\tdpkg-deb FAILED"
+    exit 100
+else
+    log.notice "\tdpkg-deb complete"
 fi
-
-log.notice 'Calling dh_make'
-log.debug "\tdh_make ${DH_MAKE_ARGS[*]}"
-dh_make \
-    ${DH_MAKE_ARGS[*]} \
-    1>>/dev/null \
-    2>>/dev/null \
-    || exit $?
-
-log.notice 'Pruning debian/ dir'
-rm \
-    debian/README \
-    debian/README.Debian \
-    debian/README.source
-
-log.notice 'Editing control file...'
-while [ true ]; do
-    vi debian/control && break;
-done
-log.notice 'Finished editing control file...'
-
-if [ -n "$PKG_FORMAT" ]; then
-    log.warn "Overriding debian/source/format to '${PKG_FORMAT}'"
-    echo "1.0" > debian/source/format
-fi
-
-if [ -n "$PKG_NODEFAULTS" ]; then
-    log.notice 'Removing default files'
-    rm -f debian/*.ex
-fi
-
-log.notice 'Starting debuild ...'
-DEBUILD_ARGS=( \
-    -us \
-    -uc \
-)
-log.debug "\tdebuild ${DEBUILD_ARGS[*]}"
-debuild ${DEBUILD_ARGS[*]}
-log.notice 'Build complete'
-
-#eval /bin/bash -i
 
