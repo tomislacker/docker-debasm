@@ -15,9 +15,22 @@ RUN         apt-get update
 ADD         assets/ /debasm
 
 #! install-container-deps
-RUN         /debasm/buildep.sh
+RUN         apt-get install -qq --no-install-recommends \
+    build-essential \
+    curl \
+    debhelper \
+    devscripts \
+    dh-make \
+    dpkg-dev \
+    fakeroot \
+    gcc \
+    git \
+    patchutils \
+    python-debian \
+    unzip \
+    vim \
+    wget
 
 #! startupmeta
 ENTRYPOINT  /debasm/build.sh
-CMD         [ ]
 
