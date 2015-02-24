@@ -5,23 +5,6 @@ export DEFAULT_ISO_8601=seconds
 export DEBASM_INCL_CANONICAL="$(readlink -m "${BASH_SOURCE}")"
 export DEBASM_ROOT="$(dirname "${DEBASM_INCL_CANONICAL}")"
 
-export DEBASM_BUILDEPS=( \
-    build-essential \
-    curl \
-    debhelper \
-    devscripts \
-    dh-make \
-    dpkg-dev \
-    fakeroot \
-    gcc \
-    git \
-    patchutils \
-    python-debian \
-    unzip \
-    vim \
-    wget \
-)
-
 export PKG_SOURCE_DIR="/pkgsrc"
 export PKG_TEMP_DIR="/pkgdst"
 export PKG_DEBIAN_DIR="/DEBIAN"
