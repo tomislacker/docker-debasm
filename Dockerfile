@@ -11,9 +11,6 @@ VOLUME      /DEBIAN
 #! refresh
 RUN         apt-get update
 
-#! install-container-source
-ADD         assets/ /debasm
-
 #! install-container-deps
 RUN         apt-get install -qq --no-install-recommends \
     build-essential \
@@ -31,6 +28,9 @@ RUN         apt-get install -qq --no-install-recommends \
     vim \
     wget
 
-#! startupmeta
-ENTRYPOINT  /debasm/build.sh
+#! install-container-source
+ADD         assets/ /debasm
 
+#! startupmeta
+ENTRYPOINT  [ "/debasm/build.sh" ]
+CMD [ ]
