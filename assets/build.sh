@@ -30,14 +30,20 @@ DH_MAKE_ARGS=( \
     --native \
     --single \
     --email ${PKG_USER_EMAIL} \
-    --addmissing \
     --yes \
 )
 
+if [ -d debian ]; then
+    DH_MAKE_ARGS+=( \
+        --addmissing \
+    )
+fi
+
 log.notice 'Calling dh_make'
+log.debug "\tdh_make ${DH_MAKE_ARGS[*]}"
 dh_make \
     ${DH_MAKE_ARGS[*]} \
-    >>/dev/null \
+    1>>/dev/null \
     2>>/dev/null \
     || exit $?
 
@@ -53,6 +59,23 @@ while [ true ]; do
 done
 log.notice 'Finished editing control file...'
 
+if [ -n "$PKG_FORMAT" ]; then
+    log.warn "Overriding debian/source/format to '${PKG_FORMAT}'"
+    echo "1.0" > debian/source/format
+fi
+
+if [ -n "$PKG_NODEFAULTS" ]; then
+    log.notice 'Removing default files'
+    rm -f debian/*.ex
+fi
+
+log.notice 'Starting debuild ...'
+DEBUILD_ARGS=( \
+    -us \
+    -uc \
+)
+log.debug "\tdebuild ${DEBUILD_ARGS[*]}"
+debuild ${DEBUILD_ARGS[*]}
 log.notice 'Build complete'
 
 #eval /bin/bash -i

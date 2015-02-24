@@ -8,22 +8,6 @@ VOLUME      /pkgsrc
 #! refresh
 RUN         apt-get update
 
-#! install
-RUN         apt-get install -qq --no-install-recommends \
-                curl \
-                debhelper \
-                devscripts \
-                dh-make \
-                dpkg-dev \
-                fakeroot \
-                gcc \
-                git \
-                patchutils \
-                python-debian \
-                unzip \
-                vim \
-                wget
-
 #! settings
 ENV         PKG_NAME=dockerrootfs
 ENV         PKG_VER=1.0
@@ -39,6 +23,13 @@ ENV         DEBASM_DUMPSETTINGS_PADLINES=y
 
 #! install-container-source
 ADD         assets/ /debasm
+
+#! install-container-deps
+RUN         /debasm/buildep.sh
+
+#! settings2
+#ENV         PKG_FORMAT=1.0
+#ENV         PKG_NODEFAULTS=y
 
 #! startupmeta
 ENTRYPOINT  /debasm/build.sh
