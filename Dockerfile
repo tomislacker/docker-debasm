@@ -47,6 +47,13 @@ RUN         apt-get install -qq --no-install-recommends \
 RUN         apt-get install -qq --no-install-recommends \
     gsoap
 
+###
+# Add libraries for performing 32bit/multilib builds
+###
+RUN         apt-get install -qq --no-install-recommends \
+    gcc-multilib \
+    libc6-dev-i386
+
 #! install-container-source
 ADD         assets/ /debasm
 
