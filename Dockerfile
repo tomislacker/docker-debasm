@@ -41,6 +41,12 @@ RUN         apt-get install -qq --no-install-recommends \
     libqtglib-2.0-0 \
     libqxmlrpc-dev
 
+###
+# SOAP Libraries Required
+###
+RUN         apt-get install -qq --no-install-recommends \
+    gsoap
+
 #! install-container-source
 ADD         assets/ /debasm
 
