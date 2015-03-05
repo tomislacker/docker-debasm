@@ -28,6 +28,19 @@ RUN         apt-get install -qq --no-install-recommends \
     vim \
     wget
 
+###
+# Qt Libraries Required
+###
+RUN         apt-get install -qq --no-install-recommends \
+    libqt4-core \
+    libqt4-dbus \
+    libqt4-dev \
+    libqt4-network \
+    libqt4-sql-mysql \
+    libqt4-xml \
+    libqtglib-2.0-0 \
+    libqxmlrpc-dev
+
 #! install-container-source
 ADD         assets/ /debasm
 
