@@ -13,6 +13,8 @@ RUN         apt-get update
 
 #! install-container-deps
 RUN         apt-get install -qq --no-install-recommends \
+    automake \
+    bison \
     build-essential \
     curl \
     debhelper \
@@ -20,6 +22,7 @@ RUN         apt-get install -qq --no-install-recommends \
     dh-make \
     dpkg-dev \
     fakeroot \
+    flex \
     gcc \
     git \
     patchutils \
